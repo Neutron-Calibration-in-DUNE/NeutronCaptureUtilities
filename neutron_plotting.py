@@ -79,10 +79,12 @@ class NeutronPlot:
         z = self.mc_neutrons['z'][index]
         inelastic = False
         inelastic_locations = []
+        inelastic_materials = []
         if len(self.mc_neutrons['inelastic'][index]) > 1:
             inelastic = True
             for j in range(1,len(self.mc_neutrons['inelastic'][index])):
                 inelastic_index = self.mc_neutrons['inelastic'][index][j]
+                inelastic_materials.append(self.mc_neutrons['material_name_begin'][inelastic_index])
                 inelastic_locations.append(
                     [
                         self.mc_neutrons['x'][inelastic_index][0],
@@ -93,21 +95,39 @@ class NeutronPlot:
                 x = np.concatenate((x,self.mc_neutrons['x'][inelastic_index]))
                 y = np.concatenate((y,self.mc_neutrons['y'][inelastic_index]))
                 z = np.concatenate((z,self.mc_neutrons['z'][inelastic_index]))
+                # get the name of the end volume
+                if j == len(self.mc_neutrons['inelastic'][index]) - 1:
+                    end_material = self.mc_neutrons['material_name_end'][inelastic_index]
+        else:
+            end_material = self.mc_neutrons['material_name_end'][index]
+        # get the name of the start volume
+        start_material = self.mc_neutrons['material_name_begin'][index]
         fig = plt.figure(figsize=(10,10))
         ax = fig.gca(projection='3d')
         ax.set_xlabel("x")
         ax.set_ylabel("z")
         ax.set_zlabel("y")
-        ax.scatter(x[0],y[0],z[0],marker='x',color='g',label='start',s=50)
+        ax.scatter(
+            x[0],y[0],z[0],
+            marker='x',color='g',
+            label='start ({})'.format(start_material),s=50
+        )
         ax.plot(np.array(x),np.array(y),np.array(z),label='neutron {}'.format(particle_id))
-        ax.set_title("Neutron Trajectory - Event: {}".format(event_id))
+        ax.set_title("Neutron Trajectory - Event: {}\n{}".format(
+            event_id,self.geometry['detector_name'][0]
+        ))
         if inelastic:
             for i, loc in enumerate(inelastic_locations):
-                if i == 0:
-                    ax.scatter(loc[0], loc[1], loc[2], marker='x',color='r',label='neutronInelastic',s=50)
-                else:
-                    ax.scatter(loc[0], loc[1], loc[2], marker='x',color='r',s=50)
-        ax.scatter(x[-1],y[-1],z[-1],marker='x',color='m',label='nCapture',s=50)
+                ax.scatter(
+                    loc[0], loc[1], loc[2], 
+                    marker='x',color='r',
+                    label='neutronInelastic: {} ({})'.format(i+1,inelastic_materials[i]),s=50
+                )
+        ax.scatter(
+            x[-1],y[-1],z[-1],
+            marker='x',color='m',
+            label='nCapture ({})'.format(end_material),s=50
+        )
         # draw the active tpc volume box
         if show_active_tpc:
             for i in range(len(self.active_tpc_lines)):
@@ -136,5 +156,5 @@ class NeutronPlot:
 
 
 if __name__ == "__main__":
-    neutrons = NeutronPlot("output.root")
+    neutrons = NeutronPlot("../output.root")
     neutrons.plot_trajectory(10,1,show_plot=True)
