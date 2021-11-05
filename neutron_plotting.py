@@ -12,6 +12,8 @@ class NeutronPlot:
         self.input_file = uproot.open(input_file)
         print("Available trees: {}".format(self.input_file.keys()))
         self.mc_neutrons = self.input_file['ana/MCNeutron'].arrays()
+        self.mc_gammas   = self.input_file['ana/MCGamma'].arrays()
+        self.mc_electrons= self.input_file['ana/MCElectron'].arrays()
         self.meta_info = self.input_file['ana/meta'].arrays()
         self.geometry = self.input_file['ana/Geometry;1'].arrays()
         # generate some geometry information from the file
@@ -74,6 +76,16 @@ class NeutronPlot:
         print("MCNeutron information:")
         for item in self.input_file['ana/MCNeutron'].keys():
             print("{}: {}".format(item, self.mc_neutrons[item]))
+    
+    def print_mc_gamma_info(self):
+        print("MCGamma information:")
+        for item in self.input_file['ana/MCGamma'].keys():
+            print("{}: {}".format(item, self.mc_gammas[item]))
+    
+    def print_mc_electron_info(self):
+        print("MCElectron information:")
+        for item in self.input_file['ana/MCElectron'].keys():
+            print("{}: {}".format(item, self.mc_electrons[item]))
 
     def plot_trajectory(
         self, 
@@ -200,4 +212,6 @@ if __name__ == "__main__":
     neutrons = NeutronPlot("../output.root")
     neutrons.print_meta_info()
     neutrons.print_mc_neutron_info()
+    neutrons.print_mc_gamma_info()
+    neutrons.print_mc_electron_info()
     neutrons.plot_trajectory(7,1,show_plot=True)
